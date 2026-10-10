@@ -1,0 +1,76 @@
+
+[manifest]
+dump_lua = true
+priority = 1
+version = "1.0.0"
+
+# Saving order fix ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
+# What were the devs cooking :sob:
+[[patches]]
+[patches.pattern]
+match_indent = true
+pattern = '''
+if korv then
+	if type(a) == "table" and type(b) == "table" then
+		if not a.time then
+			return false
+		elseif not b.time then
+			return true
+		end
+		if a.time == b.time then
+			if a.angle == b.angle then
+				if not a.type then
+					return false
+				else
+					return a.type < b.type
+				end
+			end
+
+			return a.angle < b.angle
+		end
+
+		return a.time < b.time
+	end
+	return false
+end
+if type(a) == "table" and type(b) == "table" then
+	if not a.time then
+		return false
+	elseif not b.time then
+		return true
+	end
+	return a.time < b.time
+end'''
+payload = '''
+-- Penta: What were the devs cooking :sob:
+-- anyways, heres my solution
+if type(a) == "table" and type(b) == "table" then
+	local propertyOrder = korv and { "time", "angle", "type" } or { "time" }
+	if korv then -- abosolutely makes sure its in deterministic order
+		local dont = utilitools.table.valuesToKeys(propertyOrder)
+		local add = {}
+		for k, _ in pairs(a) do if type(k) == "string" and not dont[k] then add[k] = true end end
+		for k, _ in pairs(b) do if type(k) == "string" and not dont[k] then add[k] = true end end
+		add = utilitools.table.keysToValues(add)
+		table.sort(add)
+		for _, k in ipairs(add) do table.insert(propertyOrder, k) end
+	end
+	for _, k in ipairs(propertyOrder) do
+		if not a[k] ~= not b[k] then
+			return not b[k]
+		elseif type(a[k]) ~= type(b[k]) then
+			return type(a[k]) < type(b[k])
+		elseif type(a[k]) == "number" or type(a[k]) == "string" then
+			if a[k] < b[k] then
+				return true
+			elseif a[k] > b[k] then
+				return false
+			end
+		end
+	end
+	return false
+end
+'''
+position = "at"
+target = "obj/LevelManager.lua"
+times = 1

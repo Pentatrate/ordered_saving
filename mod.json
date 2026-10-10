@@ -1,0 +1,8 @@
+{
+	"id": "ordered_saving",
+	"name": "Ordered Saving",
+	"version": "1.0.0",
+	"author": "Pentatrate",
+	"description": "Almost fully stops saving json files from shuffling them",
+	"config": {}
+}
